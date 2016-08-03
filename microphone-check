@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define wav duration padding
-wavDurationPadding=2.0
+wavDurationPadding=15.0
 
 # Define audio directory
 audio_dir="./resources/audio/"
@@ -40,12 +40,12 @@ for wavFilename in $(ls $audio_dir); do
     wavDuration=$(python -c "print $wavDuration+$wavDurationPadding")
     # Start recording on devices
     for currentDevice in `seq 1 $deviceCount`; do
-        echo "[Starting]     RPi recording" $currentDevice "for wav" $wavFilename
-        ssh pi@raspberrypi-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plughw:1 $wavFilename &
-        echo "[Started]      RPi recording" $currentDevice "for wav" $wavFilename
         echo "[Starting]     Nascent Objects recording" $currentDevice "for wav" $wavFilename
         ssh root@vaani-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plug:mic $wavFilename &
         echo "[Started]      Nascent Objects recording" $currentDevice "for wav" $wavFilename
+        echo "[Starting]     RPi recording" $currentDevice "for wav" $wavFilename
+        ssh pi@raspberrypi-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plughw:1 $wavFilename &
+        echo "[Started]      RPi recording" $currentDevice "for wav" $wavFilename
     done
     # Wait until recordings are started
     halfWAVDurationPadding=$(python -c "print $wavDurationPadding/2")

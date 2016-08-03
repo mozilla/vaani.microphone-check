@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Define audio directory
+audio_dir="./resources/audio/"
+
+# Check $1 and print instructions if invalid
+re='^[0-9]+$'
+if ! [[ $1 =~ $re ]] ; then
+    echo "  Usage: ./microphone-check device-count" >&2
+    echo "                  " >&2
+    echo "   device-count - Number of device pairs to test. So for example, if one had" >&2
+    echo "                  3 Nascent Objects devices and 3 RPi's then the device count." >&2
+    echo "                  would be 3." >&2
+    echo "                  " >&2
+    echo "                  Note also that these devices have to have a very specific" >&2
+    echo "                  names. The Nascent Objects devices must be named 'vaani-n'" >&2
+    echo "                  where 'n' is a number from 1 to device-count. Similarly," >&2
+    echo "                  the RPi's must be named 'raspberrypi-n' where 'n' is a number" >&2
+    echo "                  from 1 to device-count. Both must be on the local network so" >&2
+    echo "                  they can be referred to as 'vaani-n.local' and 'raspberrypi-n.local'" >&2
+    echo "                  respectively" >&2
+    echo "                  " >&2
+    echo "                  An additional requirement is that the user running this script" >&2
+    echo "                  be able to ssh into the remote machines using the default user" >&2
+    echo "                  names, root for Nascent Objects and pi for RPi." >&2
+    exit 1
+fi
+
+# Define device-count
+deviceCount=$1
+
+# Loop over wav files and record them and the remote devices
+for wavFilename in $(ls $audio_dir); do
+    # Obtain wav duration
+    wavDuration=$(sox $audio_dir$wavFilename -n stat 2>&1 | sed -n 's#^Length (seconds):[^0-9]*\([0-9.]*\)$#\1#p')
+    # Start recording on RPi's
+    ./scripts/rpi-record.sh $deviceCount $wavFilename $wavDuration
+    # Start recording on Nascent Objects
+    ./scripts/no-record.sh $deviceCount $wavFilename $wavDuration
+    # TODO: Wait until recordings have started
+    play $audio_dir$wavFilename
+    # TODO: Wait until recordings have finished
+done
+
+# Loop over wav files and collect their recordings from the remote devices 
+for wavFilename in $(ls $audio_dir); do
+    # Start recording on RPi's
+    ./scripts/rpi-collect.sh $deviceCount $wavFilename
+    # Start recording on Nascent Objects
+    #./scripts/no-collect.sh $deviceCount $wavFilename
+done

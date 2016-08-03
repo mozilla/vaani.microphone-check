@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Define wav duration padding
+wavDurationPadding=1.0
+
 # Define audio directory
 audio_dir="./resources/audio/"
 
@@ -33,13 +36,24 @@ deviceCount=$1
 for wavFilename in $(ls $audio_dir); do
     # Obtain wav duration
     wavDuration=$(sox $audio_dir$wavFilename -n stat 2>&1 | sed -n 's#^Length (seconds):[^0-9]*\([0-9.]*\)$#\1#p')
-    # Start recording on RPi's
-    ./scripts/rpi-record.sh $deviceCount $wavFilename $wavDuration
-    # Start recording on Nascent Objects
-    ./scripts/no-record.sh $deviceCount $wavFilename $wavDuration
-    # TODO: Wait until recordings have started
+    # Pad wavDuration due to startup times
+    wavDuration=$(python -c "print $wavDuration+$wavDurationPadding")
+    # Start recording on devices
+    for currentDevice in `seq 1 $deviceCount`; do
+        echo "[Starting]     RPi recording" $currentDevice "for wav" $wavFilename
+        ssh pi@raspberrypi-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plughw:1 $wavFilename &
+        echo "[Started]      RPi recording" $currentDevice "for wav" $wavFilename
+        echo "[Starting]     Nascent Objects recording" $currentDevice "for wav" $wavFilename
+        ssh root@vaani-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plug:mic $wavFilename &
+        echo "[Started]      Nascent Objects recording" $currentDevice "for wav" $wavFilename
+    done
+    # Wait until recordings are started
+    halfWAVDurationPadding=$(python -c "print $wavDurationPadding/2")
+    sleep $halfWAVDurationPadding
+    # Play spoken prompt
     play $audio_dir$wavFilename
-    # TODO: Wait until recordings have finished
+    # Wait until all recording are done
+    wait
 done
 
 # Loop over wav files and collect their recordings from the remote devices 
@@ -47,5 +61,5 @@ for wavFilename in $(ls $audio_dir); do
     # Start recording on RPi's
     ./scripts/rpi-collect.sh $deviceCount $wavFilename
     # Start recording on Nascent Objects
-    #./scripts/no-collect.sh $deviceCount $wavFilename
+    ./scripts/no-collect.sh $deviceCount $wavFilename
 done

@@ -9,7 +9,7 @@ wavFilename=$2
 
 # Start collect on Nascent Objects
 for currentDevice in `seq 1 $deviceCount`; do
-  target_dir=results/rpi/device-$currentDevice/
+  target_dir=results/no/device-$currentDevice/
   if [ ! -d "$target_dir" ]; then
     mkdir -p $target_dir
   fi

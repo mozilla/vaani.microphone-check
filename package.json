@@ -1,0 +1,26 @@
+{
+  "name": "vaani.microphone-check",
+  "version": "1.0.0",
+  "description": "Suite of tools used to compare microphones",
+  "main": "calculate-wer",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mozilla/vaani.microphone-check.git"
+  },
+  "keywords": [
+    "microphone"
+  ],
+  "author": "Kelly Davis",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/mozilla/vaani.microphone-check/issues"
+  },
+  "homepage": "https://github.com/mozilla/vaani.microphone-check#readme",
+  "dependencies": {
+    "async": "^2.0.1",
+    "googleapis": "^12.0.0"
+  }
+}

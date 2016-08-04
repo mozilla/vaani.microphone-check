@@ -1,0 +1,91 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const wer = require('./lib/wer');
+const googlesst = require('./lib/googlesst');
+
+// Gets config
+const getConfig = () => {
+    var config = JSON.parse(process.env.VAANI_CONFIG || fs.readFileSync("config.json"));
+    config.secure = !!config.secure;
+    config.port = process.env.PORT || config.port || (config.secure ? 443 : 80);
+    config.maxwords = config.maxwords || 5;
+    return config;
+};
+
+// Obtain config
+var config = getConfig();
+
+// Set env variables
+process.env['GCLOUD_PROJECT'] = config.googlestt.GCLOUD_PROJECT;
+process.env['GOOGLE_APPLICATION_CREDENTIALS'] = path.join(__dirname, 'google_config.json');
+
+// Define results directory
+var resultsDirectory = './results';
+
+// Obtain reference from wavFile
+const getReference = (wavFile) => {
+  var referenceWithUnderscores = wavFile.slice(0, -4);
+  return referenceWithUnderscores.replace(/_/g, ' ');
+}
+
+// Obtain hypothesis from STT
+const getHypothesis = (deviceDirectory, wavFile, getHypothesisCallback) => {
+  var wavFilepath = path.join(deviceDirectory, wavFile);
+  googlesst.recognize(wavFilepath, getHypothesisCallback);
+}
+
+// Write WER to file
+const persistWER = (deviceDirectory, avgWER) => {
+  fs.writeFile(path.join(deviceDirectory, 'RESULTS'), 'WER: ' + avgWER, (err) => {
+    if(err) {
+      console.log(err);
+      return;
+    }
+    console.log('WER: ' + avgWER + ' (' + deviceDirectory + ')'); 
+  });
+}
+
+// Process wav files
+const processWAVFiles = (deviceDirectory) => {
+  var totalWER = 0;
+  var wavFilesProcessed = 0;
+
+  fs.readdirSync(deviceDirectory).forEach( (wavFile, wavFileCount, array) => {
+    var reference = getReference(wavFile);
+    function getHypothesisCallback(hypothesis) {
+      wavFilesProcessed = wavFilesProcessed + 1;
+      var partialWER = wer.wer(reference, hypothesis);
+  
+      console.log('reference: "' + reference + '"');
+      console.log('hypothesis: "' + hypothesis + '"');
+      console.log('partial WER: ' + partialWER); 
+      console.log('wavFileCount: ' + wavFileCount); 
+      console.log('deviceDirectory: ' + deviceDirectory); 
+      console.log('wavFile: ' + wavFile); 
+
+      totalWER = totalWER + partialWER;
+
+      if(wavFilesProcessed == array.length) {
+        persistWER(deviceDirectory, (totalWER / array.length));
+      }
+    }
+    getHypothesis(deviceDirectory, wavFile, getHypothesisCallback); 
+  });
+}
+
+// Process devices
+const processDevices = (deviceCategory, device) => {
+  var deviceDirectory = path.join(resultsDirectory, deviceCategory, device);
+  processWAVFiles(deviceDirectory);
+}
+
+// Process device categories
+const processDeviceCategories = (deviceCategory) => {
+  var deviceCategoryDirectory = path.join(resultsDirectory, deviceCategory);
+  fs.readdirSync(deviceCategoryDirectory).forEach(processDevices.bind(undefined, deviceCategory));
+}
+
+// Process results 
+fs.readdirSync(resultsDirectory).forEach(processDeviceCategories);

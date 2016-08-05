@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const wer = require('./lib/wer');
+const limiter = require('limiter');
+const googlesst = require('./lib/googlesst');
+
+// Gets config
+const getConfig = () => {
+    var config = JSON.parse(process.env.VAANI_CONFIG || fs.readFileSync("config.json"));
+    config.secure = !!config.secure;
+    config.port = process.env.PORT || config.port || (config.secure ? 443 : 80);
+    config.maxwords = config.maxwords || 5;
+    return config;
+};
+
+// Obtain config
+var config = getConfig();
+
+// Set env variables
+process.env['GCLOUD_PROJECT'] = config.googlestt.GCLOUD_PROJECT;
+process.env['GOOGLE_APPLICATION_CREDENTIALS'] = path.join(__dirname, 'google_config.json');
+
+// Define resources directory
+var resourcesDirectory = './resources';
+
+// Declare global rateLimiter [Dispite http://bit.ly/2azHlHG there is a undocumented concurrent limit]
+var rateLimiter = new limiter.RateLimiter(1, 5000);
+
+// Obtain reference from wavFile
+const getReference = (wavFile) => {
+  var referenceWithUnderscores = wavFile.slice(0, -4);
+  return referenceWithUnderscores.replace(/_/g, ' ');
+}
+
+// Obtain hypothesis from STT
+const getHypothesis = (resourceCategoryDirectory, wavFile, getHypothesisCallback) => {
+  var wavFilepath = path.join(resourceCategoryDirectory, wavFile);
+  googlesst.recognize(wavFilepath, getHypothesisCallback);
+}
+
+// Write WER to file
+const persistWER = (resourceCategoryDirectory, avgWER) => {
+  fs.writeFile(path.join(resourceCategoryDirectory, 'RESULTS'), 'WER: ' + avgWER, (err) => {
+    if(err) {
+      console.log(err);
+      return;
+    }
+    console.log('WER: ' + avgWER + ' (' + resourceCategoryDirectory + ')');
+  });
+}
+
+// Process wav files
+const processWAVFiles = (resourceCategoryDirectory) => {
+  var totalWER = 0;
+  var wavFilesProcessed = 0;
+
+  fs.readdirSync(resourceCategoryDirectory).forEach( (wavFile, wavFileCount, array) => {
+    rateLimiter.removeTokens(1, () => {
+      if(wavFile.endsWith('.wav')) {
+        var reference = getReference(wavFile);
+        function getHypothesisCallback(hypothesis) {
+          wavFilesProcessed = wavFilesProcessed + 1;
+          var partialWER = wer.wer(reference, hypothesis);
+
+          totalWER = totalWER + partialWER;
+          console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + resourceCategoryDirectory + ')');
+
+          if(wavFilesProcessed == array.length) {
+            persistWER(resourceCategoryDirectory, (totalWER / array.length));
+          }
+        }
+        getHypothesis(resourceCategoryDirectory, wavFile, getHypothesisCallback);
+      }
+    });
+  });
+}
+
+// Process resource categories
+const processResourceCategories = (resourceCategory) => {
+  var resourceCategoryDirectory = path.join(resourcesDirectory, resourceCategory);
+  processWAVFiles(resourceCategoryDirectory);
+}
+
+// Process resources
+fs.readdirSync(resourcesDirectory).forEach(processResourceCategories);

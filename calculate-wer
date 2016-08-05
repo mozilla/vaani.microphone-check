@@ -25,7 +25,7 @@ process.env['GOOGLE_APPLICATION_CREDENTIALS'] = path.join(__dirname, 'google_con
 // Define results directory
 var resultsDirectory = './results';
 
-// Declare global rateLimiter
+// Declare global rateLimiter [See: http://bit.ly/2azHlHG for origin of 500]
 var rateLimiter = new limiter.RateLimiter(1, 500);
 
 // Obtain reference from wavFile

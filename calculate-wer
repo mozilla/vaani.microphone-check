@@ -65,6 +65,7 @@ const processWAVFiles = (deviceDirectory) => {
           var partialWER = wer.wer(reference, hypothesis);
 
           totalWER = totalWER + partialWER;
+          console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + deviceDirectory + ')');
 
           if(wavFilesProcessed == array.length) {
             persistWER(deviceDirectory, (totalWER / array.length));

@@ -110,7 +110,7 @@ results/rpi/device-2/RESULTS
 results/rpi/device-3/RESULTS
 ...
 ```
-each of which contains a single line of the form
+corresponding to the various microphone/distance pairings. Each such file contains a single line of the form
 ```
 WER: 0.2053679653679652
 ```

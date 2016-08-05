@@ -69,3 +69,48 @@ results/
         └── can_you_please_add_on_pilsners_to_my_list.wav
 ```
 where the `rpi` directory contains the Raspberry Pi results and the `no` directory the Nascent Object results.
+
+## Evaluation
+
+Evaluation is done through calculation of the [WER](https://en.wikipedia.org/wiki/Word_error_rate) on the result and resource sets. (The resource set is located in `resource/audio` and consists of the phrases used to drive the sound source.) Evaluation of the WER on the resource set provides a baseline WER from which the result WER's can be judged, as the resource set WER is not colored by microphones or distances.
+
+### Evaluation: Resource Set
+
+To dertermine the WER for resource set, the repository contains a script `calculate-wer-baseline` that when executed as follows
+```
+kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./calculate-wer-baseline
+```
+passes the resource set speech corpus through a STT engine and measures the WER of the resulting transcripts.
+
+The WER result is then written to the file
+```
+resources/audio/RESULTS
+```
+which contains a single line of the form
+```
+WER: 0.1553679653679652
+```
+
+### Evaluation: Result Set
+
+To determine the WER for the various microphone/distance pairings of the result set, the repository contains a script `calculate-wer` that when executed as follows
+```
+kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./calculate-wer
+```
+passes the result set speech corpus through a STT engine and measures the WER of the resulting transcripts.
+
+The WER results are then written to files of the form
+```
+results/no/device-1/RESULTS
+results/no/device-2/RESULTS
+results/no/device-3/RESULTS
+...
+results/rpi/device-1/RESULTS
+results/rpi/device-2/RESULTS
+results/rpi/device-3/RESULTS
+...
+```
+each of which contains a single line of the form
+```
+WER: 0.2053679653679652
+```

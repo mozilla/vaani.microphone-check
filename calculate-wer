@@ -43,7 +43,7 @@ const persistWER = (deviceDirectory, avgWER) => {
       console.log(err);
       return;
     }
-    console.log('WER: ' + avgWER + ' (' + deviceDirectory + ')'); 
+    console.log('WER: ' + avgWER + ' (' + deviceDirectory + ')');
   });
 }
 
@@ -53,25 +53,27 @@ const processWAVFiles = (deviceDirectory) => {
   var wavFilesProcessed = 0;
 
   fs.readdirSync(deviceDirectory).forEach( (wavFile, wavFileCount, array) => {
-    var reference = getReference(wavFile);
-    function getHypothesisCallback(hypothesis) {
-      wavFilesProcessed = wavFilesProcessed + 1;
-      var partialWER = wer.wer(reference, hypothesis);
-  
-      console.log('reference: "' + reference + '"');
-      console.log('hypothesis: "' + hypothesis + '"');
-      console.log('partial WER: ' + partialWER); 
-      console.log('wavFileCount: ' + wavFileCount); 
-      console.log('deviceDirectory: ' + deviceDirectory); 
-      console.log('wavFile: ' + wavFile); 
+    if(wavFile.endsWith('.wav')) {
+      var reference = getReference(wavFile);
+      function getHypothesisCallback(hypothesis) {
+        wavFilesProcessed = wavFilesProcessed + 1;
+        var partialWER = wer.wer(reference, hypothesis);
 
-      totalWER = totalWER + partialWER;
+        console.log('reference: "' + reference + '"');
+        console.log('hypothesis: "' + hypothesis + '"');
+        console.log('partial WER: ' + partialWER);
+        console.log('wavFileCount: ' + wavFileCount);
+        console.log('deviceDirectory: ' + deviceDirectory);
+        console.log('wavFile: ' + wavFile);
 
-      if(wavFilesProcessed == array.length) {
-        persistWER(deviceDirectory, (totalWER / array.length));
+        totalWER = totalWER + partialWER;
+
+        if(wavFilesProcessed == array.length) {
+          persistWER(deviceDirectory, (totalWER / array.length));
+        }
       }
+      getHypothesis(deviceDirectory, wavFile, getHypothesisCallback);
     }
-    getHypothesis(deviceDirectory, wavFile, getHypothesisCallback); 
   });
 }
 
@@ -87,5 +89,5 @@ const processDeviceCategories = (deviceCategory) => {
   fs.readdirSync(deviceCategoryDirectory).forEach(processDevices.bind(undefined, deviceCategory));
 }
 
-// Process results 
+// Process results
 fs.readdirSync(resultsDirectory).forEach(processDeviceCategories);

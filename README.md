@@ -28,51 +28,52 @@ The final configuration step that must occur is adjusting the audio level of the
 
 Once on has completed all of the set-up steps, execution of the code is straight-forward. One `cd`'s into the `vaani.microphone-check` directory. Then one calls `./microphone-check` as follows
 ```
-kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./microphone-check <n>
+kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./microphone-check <n> <corpus>
 ```
-where `<n>` is replaced with the number of Nascent Object devices.
+where `<n>` is replaced with the number of Nascent Object devices and `<corpus>`with the corpus one wishes to test. (The various corpora are identified by their directory name under the `resources/audio/` directory.
 
 Upon completetion, the recordings from the various devices will be placed in the `results` directory. For the `n=3` case the results will appear as follows
 ```
-results/
-├── no
-│   ├── device-1
-│   │   ├── add_anemone_nemorosas_to_my_list.wav
-|   |   |   ...
-│   │   ├── add_anemone_tetonensis_to_my_list_please.wav
-│   │   └── can_you_please_add_on_pilsners_to_my_list.wav
-│   ├── device-2
-│   │   ├── add_anemone_nemorosas_to_my_list.wav
-│   │   ├── add_anemone_tetonensis_to_my_list_please.wav
-|   |   |   ...
-│   │   └── can_you_please_add_on_pilsners_to_my_list.wav
-│   └── device-3
-│       ├── add_anemone_nemorosas_to_my_list.wav
-│       ├── add_anemone_tetonensis_to_my_list_please.wav
-|       |   ...
-│       └── can_you_please_add_on_pilsners_to_my_list.wav
-└── rpi
-    ├── device-1
-    │   ├── add_anemone_nemorosas_to_my_list.wav
-    │   ├── add_anemone_tetonensis_to_my_list_please.wav
-    |   |   ...
-    │   └── can_you_please_add_on_pilsners_to_my_list.wav
-    ├── device-2
-    │   ├── add_anemone_nemorosas_to_my_list.wav
-    │   ├── add_anemone_tetonensis_to_my_list_please.wav
-    |   |   ...
-    │   └── can_you_please_add_on_pilsners_to_my_list.wav
-    └── device-3
-        ├── add_anemone_nemorosas_to_my_list.wav
-        ├── add_anemone_tetonensis_to_my_list_please.wav
-        |   ...
-        └── can_you_please_add_on_pilsners_to_my_list.wav
+results
+├── <corpus>
+    ├── no
+    │   ├── device-1
+    │   │   ├── add_anemone_nemorosas_to_my_list.wav
+    |   |   |   ...
+    │   │   ├── add_anemone_tetonensis_to_my_list_please.wav
+    │   │   └── can_you_please_add_on_pilsners_to_my_list.wav
+    │   ├── device-2
+    │   │   ├── add_anemone_nemorosas_to_my_list.wav
+    │   │   ├── add_anemone_tetonensis_to_my_list_please.wav
+    |   |   |   ...
+    │   │   └── can_you_please_add_on_pilsners_to_my_list.wav
+    │   └── device-3
+    │       ├── add_anemone_nemorosas_to_my_list.wav
+    │       ├── add_anemone_tetonensis_to_my_list_please.wav
+    |       |   ...
+    │       └── can_you_please_add_on_pilsners_to_my_list.wav
+    └── rpi
+        ├── device-1
+        │   ├── add_anemone_nemorosas_to_my_list.wav
+        │   ├── add_anemone_tetonensis_to_my_list_please.wav
+        |   |   ...
+        │   └── can_you_please_add_on_pilsners_to_my_list.wav
+        ├── device-2
+        │   ├── add_anemone_nemorosas_to_my_list.wav
+        │   ├── add_anemone_tetonensis_to_my_list_please.wav
+        |   |   ...
+        │   └── can_you_please_add_on_pilsners_to_my_list.wav
+        └── device-3
+            ├── add_anemone_nemorosas_to_my_list.wav
+            ├── add_anemone_tetonensis_to_my_list_please.wav
+            |   ...
+            └── can_you_please_add_on_pilsners_to_my_list.wav
 ```
-where the `rpi` directory contains the Raspberry Pi results and the `no` directory the Nascent Object results.
+where `<corpus>` is the selected corpus, the `rpi` directory contains the Raspberry Pi results, and the `no` directory the Nascent Object results.
 
 ## Evaluation
 
-Evaluation is done through calculation of the [WER](https://en.wikipedia.org/wiki/Word_error_rate) on the result and resource sets. (The resource set is located in `resource/audio` and consists of the phrases used to drive the sound source.) Evaluation of the WER on the resource set provides a baseline WER from which the result WER's can be judged, as the resource set WER is not colored by microphones or distances.
+Evaluation is done through calculation of the [WER](https://en.wikipedia.org/wiki/Word_error_rate) on the result and resource sets. (The resource set is located in `resource/audio/<corpus>/` and consists of the phrases used to drive the sound source.) Evaluation of the WER on the resource set provides a baseline WER from which the result WER's can be judged, as the resource set WER is not colored by microphones or distances.
 
 ### Evaluation: Resource Set
 
@@ -80,13 +81,13 @@ To dertermine the WER for resource set, the repository contains a script `calcul
 ```
 kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./calculate-wer-baseline
 ```
-passes the resource set speech corpus through a STT engine and measures the WER of the resulting transcripts.
+passes the resource set speech corpora through a STT engine and measures the WER of the resulting transcripts.
 
-The WER result is then written to the file
+The WER result is then written to files of the form
 ```
-resources/audio/RESULTS
+resources/audio/<corpus>/RESULTS
 ```
-which contains a single line of the form
+which contain a single line of the form
 ```
 WER: 0.1553679653679652
 ```
@@ -97,20 +98,20 @@ To determine the WER for the various microphone/distance pairings of the result 
 ```
 kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./calculate-wer
 ```
-passes the result set speech corpus through a STT engine and measures the WER of the resulting transcripts.
+passes the result set speech corpora through a STT engine and measures the WER of the resulting transcripts.
 
 The WER results are then written to files of the form
 ```
-results/no/device-1/RESULTS
-results/no/device-2/RESULTS
-results/no/device-3/RESULTS
+results/<corpus-1>/no/device-1/RESULTS
+results/<corpus-1>/no/device-2/RESULTS
+results/<corpus-1>/no/device-3/RESULTS
 ...
-results/rpi/device-1/RESULTS
-results/rpi/device-2/RESULTS
-results/rpi/device-3/RESULTS
+results/<corpus-n>/rpi/device-1/RESULTS
+results/<corpus-n>/rpi/device-2/RESULTS
+results/<corpus-n>/rpi/device-3/RESULTS
 ...
 ```
-corresponding to the various microphone/distance pairings. Each such file contains a single line of the form
+corresponding to the various microphone/distance/corpus pairings. Each such file contains a single line of the form
 ```
 WER: 0.2053679653679652
 ```

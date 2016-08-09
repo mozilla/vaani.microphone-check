@@ -6,10 +6,11 @@ home_dir="/home/pi/"
 # Define passed variables
 deviceCount=$1
 wavFilename=$2
+corpus=$3
 
 # Start collect on RPi 
 for currentDevice in `seq 1 $deviceCount`; do
-  target_dir=results/rpi/device-$currentDevice/
+  target_dir=results/$corpus/rpi/device-$currentDevice/
   if [ ! -d "$target_dir" ]; then
     mkdir -p $target_dir
   fi

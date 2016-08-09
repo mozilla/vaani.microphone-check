@@ -35,28 +35,28 @@ const getReference = (wavFile) => {
 }
 
 // Obtain hypothesis from STT
-const getHypothesis = (resourceCategoryDirectory, wavFile, getHypothesisCallback) => {
-  var wavFilepath = path.join(resourceCategoryDirectory, wavFile);
+const getHypothesis = (resourceCorpusDirectory, wavFile, getHypothesisCallback) => {
+  var wavFilepath = path.join(resourceCorpusDirectory, wavFile);
   googlesst.recognize(wavFilepath, getHypothesisCallback);
 }
 
 // Write WER to file
-const persistWER = (resourceCategoryDirectory, avgWER) => {
-  fs.writeFile(path.join(resourceCategoryDirectory, 'RESULTS'), 'WER: ' + avgWER, (err) => {
+const persistWER = (resourceCorpusDirectory, avgWER) => {
+  fs.writeFile(path.join(resourceCorpusDirectory, 'RESULTS'), 'WER: ' + avgWER, (err) => {
     if(err) {
       console.log(err);
       return;
     }
-    console.log('WER: ' + avgWER + ' (' + resourceCategoryDirectory + ')');
+    console.log('WER: ' + avgWER + ' (' + resourceCorpusDirectory + ')');
   });
 }
 
 // Process wav files
-const processWAVFiles = (resourceCategoryDirectory) => {
+const processWAVFiles = (resourceCorpusDirectory) => {
   var totalWER = 0;
   var wavFilesProcessed = 0;
 
-  fs.readdirSync(resourceCategoryDirectory).forEach( (wavFile, wavFileCount, array) => {
+  fs.readdirSync(resourceCorpusDirectory).forEach( (wavFile, wavFileCount, array) => {
     rateLimiter.removeTokens(1, () => {
       if(wavFile.endsWith('.wav')) {
         var reference = getReference(wavFile);
@@ -65,22 +65,28 @@ const processWAVFiles = (resourceCategoryDirectory) => {
           var partialWER = wer.wer(reference, hypothesis);
 
           totalWER = totalWER + partialWER;
-          console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + resourceCategoryDirectory + ')');
+          console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + resourceCorpusDirectory + ')');
 
           if(wavFilesProcessed == array.length) {
-            persistWER(resourceCategoryDirectory, (totalWER / array.length));
+            persistWER(resourceCorpusDirectory, (totalWER / array.length));
           }
         }
-        getHypothesis(resourceCategoryDirectory, wavFile, getHypothesisCallback);
+        getHypothesis(resourceCorpusDirectory, wavFile, getHypothesisCallback);
       }
     });
   });
 }
 
+// Process corpora
+const processCorpora = (resourceCategoryDirectory, resourceCorpus) => {
+  var resourceCorpusDirectory = path.join(resourceCategoryDirectory, resourceCorpus);
+  processWAVFiles(resourceCorpusDirectory);
+}
+
 // Process resource categories
 const processResourceCategories = (resourceCategory) => {
   var resourceCategoryDirectory = path.join(resourcesDirectory, resourceCategory);
-  processWAVFiles(resourceCategoryDirectory);
+  fs.readdirSync(resourceCategoryDirectory).forEach(processCorpora.bind(undefined, resourceCategoryDirectory));
 }
 
 // Process resources

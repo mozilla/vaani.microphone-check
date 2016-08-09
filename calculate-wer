@@ -78,16 +78,22 @@ const processWAVFiles = (deviceDirectory) => {
 }
 
 // Process devices
-const processDevices = (deviceCategory, device) => {
-  var deviceDirectory = path.join(resultsDirectory, deviceCategory, device);
+const processDevices = (deviceCategoryDirectory, device) => {
+  var deviceDirectory = path.join(deviceCategoryDirectory, device);
   processWAVFiles(deviceDirectory);
 }
 
 // Process device categories
-const processDeviceCategories = (deviceCategory) => {
-  var deviceCategoryDirectory = path.join(resultsDirectory, deviceCategory);
-  fs.readdirSync(deviceCategoryDirectory).forEach(processDevices.bind(undefined, deviceCategory));
+const processDeviceCategories = (corpusDirectory, deviceCategory) => {
+  var deviceCategoryDirectory = path.join(corpusDirectory, deviceCategory);
+  fs.readdirSync(deviceCategoryDirectory).forEach(processDevices.bind(undefined, deviceCategoryDirectory));
+}
+
+// Process corpora
+const processCorpora = (corpus) => {
+  var corpusDirectory = path.join(resultsDirectory, corpus);
+  fs.readdirSync(corpusDirectory).forEach(processDeviceCategories.bind(undefined, corpusDirectory));
 }
 
 // Process results
-fs.readdirSync(resultsDirectory).forEach(processDeviceCategories);
+fs.readdirSync(resultsDirectory).forEach(processCorpora);

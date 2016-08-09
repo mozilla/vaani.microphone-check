@@ -9,7 +9,9 @@ audio_dir="./resources/audio/"
 # Check $1 and print instructions if invalid
 re='^[0-9]+$'
 if ! [[ $1 =~ $re ]] ; then
-    echo "  Usage: ./microphone-check device-count" >&2
+    echo "  Usage: ./microphone-check device-count corpus" >&2
+    echo "                  " >&2
+    echo "   corpus       - Corpus to use for the test. Corpura are under " $audio_dir >&2
     echo "                  " >&2
     echo "   device-count - Number of device pairs to test. So for example, if one had" >&2
     echo "                  3 Nascent Objects devices and 3 RPi's then the device count." >&2
@@ -32,34 +34,43 @@ fi
 # Define device-count
 deviceCount=$1
 
+# Define corpus 
+corpus=$2'/'
+
 # Loop over wav files and record them and the remote devices
-for wavFilename in $(ls $audio_dir); do
-    # Obtain wav duration
-    wavDuration=$(sox $audio_dir$wavFilename -n stat 2>&1 | sed -n 's#^Length (seconds):[^0-9]*\([0-9.]*\)$#\1#p')
-    # Pad wavDuration due to startup times
-    wavDuration=$(python -c "print $wavDuration+$wavDurationPadding")
-    # Start recording on devices
-    for currentDevice in `seq 1 $deviceCount`; do
-        echo "[Starting]     Nascent Objects recording" $currentDevice "for wav" $wavFilename
-        ssh root@vaani-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plug:mic $wavFilename &
-        echo "[Started]      Nascent Objects recording" $currentDevice "for wav" $wavFilename
-        echo "[Starting]     RPi recording" $currentDevice "for wav" $wavFilename
-        ssh pi@raspberrypi-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plughw:1 $wavFilename &
-        echo "[Started]      RPi recording" $currentDevice "for wav" $wavFilename
-    done
-    # Wait until recordings are started
-    halfWAVDurationPadding=$(python -c "print $wavDurationPadding/2")
-    sleep $halfWAVDurationPadding
-    # Play spoken prompt
-    play $audio_dir$wavFilename
-    # Wait until all recording are done
-    wait
+for wavFilename in $(ls $audio_dir$corpus); do
+    # Ignore non-wav files
+    if [[ $wavFilename == *.wav ]]; then
+        # Obtain wav duration
+        wavDuration=$(sox $audio_dir$corpus$wavFilename -n stat 2>&1 | sed -n 's#^Length (seconds):[^0-9]*\([0-9.]*\)$#\1#p')
+        # Pad wavDuration due to startup times
+        wavDuration=$(python -c "print $wavDuration+$wavDurationPadding")
+        # Start recording on devices
+        for currentDevice in `seq 1 $deviceCount`; do
+            echo "[Starting]     Nascent Objects recording" $currentDevice "for wav" $wavFilename
+            ssh root@vaani-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plug:mic $wavFilename &
+            echo "[Started]      Nascent Objects recording" $currentDevice "for wav" $wavFilename
+            echo "[Starting]     RPi recording" $currentDevice "for wav" $wavFilename
+            ssh pi@raspberrypi-$currentDevice.local arecord -f S16_LE -c1 -r16000 -t wav -d $wavDuration -D plughw:1 $wavFilename &
+            echo "[Started]      RPi recording" $currentDevice "for wav" $wavFilename
+        done
+        # Wait until recordings are started
+        halfWAVDurationPadding=$(python -c "print $wavDurationPadding/2")
+        sleep $halfWAVDurationPadding
+        # Play spoken prompt
+        play $audio_dir$corpus$wavFilename
+        # Wait until all recording are done
+        wait
+    fi
 done
 
 # Loop over wav files and collect their recordings from the remote devices 
-for wavFilename in $(ls $audio_dir); do
-    # Start recording on RPi's
-    ./scripts/rpi-collect.sh $deviceCount $wavFilename
-    # Start recording on Nascent Objects
-    ./scripts/no-collect.sh $deviceCount $wavFilename
+for wavFilename in $(ls $audio_dir$corpus); do
+    # Ignore non-wav files
+    if [[ $file == *.wav ]]; then
+        # Start recording on RPi's
+        ./scripts/rpi-collect.sh $deviceCount $wavFilename
+        # Start recording on Nascent Objects
+        ./scripts/no-collect.sh $deviceCount $wavFilename
+    fi
 done

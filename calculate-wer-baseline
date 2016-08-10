@@ -85,8 +85,10 @@ const processCorpora = (resourceCategoryDirectory, resourceCorpus) => {
 
 // Process resource categories
 const processResourceCategories = (resourceCategory) => {
-  var resourceCategoryDirectory = path.join(resourcesDirectory, resourceCategory);
-  fs.readdirSync(resourceCategoryDirectory).forEach(processCorpora.bind(undefined, resourceCategoryDirectory));
+  if (resourceCategory === 'audio') {
+    var resourceCategoryDirectory = path.join(resourcesDirectory, resourceCategory);
+    fs.readdirSync(resourceCategoryDirectory).forEach(processCorpora.bind(undefined, resourceCategoryDirectory));
+  }
 }
 
 // Process resources

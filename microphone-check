@@ -67,7 +67,7 @@ done
 # Loop over wav files and collect their recordings from the remote devices 
 for wavFilename in $(ls $audio_dir$corpus'/'); do
     # Ignore non-wav files
-    if [[ $file == *.wav ]]; then
+    if [[ $wavFilename == *.wav ]]; then
         # Start recording on RPi's
         ./scripts/rpi-collect.sh $deviceCount $wavFilename $corpus
         # Start recording on Nascent Objects

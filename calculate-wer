@@ -51,6 +51,13 @@ const persistWER = (deviceDirectory, avgWER) => {
   });
 }
 
+// Normalize text
+const normalizeText = (text) => {
+  text = text.toLowerCase();
+  text = text.replace(/-/g,' ');
+  return text;
+}
+
 // Process wav files
 const processWAVFiles = (deviceDirectory) => {
   var totalWER = 0;
@@ -62,6 +69,11 @@ const processWAVFiles = (deviceDirectory) => {
         var reference = getReference(wavFile);
         function getHypothesisCallback(hypothesis) {
           wavFilesProcessed = wavFilesProcessed + 1;
+          reference = normalizeText(reference);
+          hypothesis = normalizeText(hypothesis);
+          console.log('****************************************');
+          console.log('reference: ' + reference);
+          console.log('hypothesis: ' + hypothesis);
           var partialWER = wer.wer(reference, hypothesis);
 
           totalWER = totalWER + partialWER;

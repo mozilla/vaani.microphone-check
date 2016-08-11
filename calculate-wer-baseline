@@ -5,6 +5,7 @@ const path = require('path');
 const wer = require('./lib/wer');
 const limiter = require('limiter');
 const googlesst = require('./lib/googlesst');
+const parse_numbers = require ('parse-numbers');
 
 // Gets config
 const getConfig = () => {
@@ -55,6 +56,7 @@ const persistWER = (resourceCorpusDirectory, avgWER) => {
 const normalizeText = (text) => {
   text = text.toLowerCase();
   text = text.replace(/-/g,' ');
+  text = parse_numbers(text).string.out;
   return text;
 }
 

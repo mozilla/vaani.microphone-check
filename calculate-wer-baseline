@@ -71,9 +71,9 @@ const processWAVFiles = (resourceCorpusDirectory) => {
           wavFilesProcessed = wavFilesProcessed + 1;
           reference = normalizeText(reference);
           hypothesis = normalizeText(hypothesis);
+          console.log('****************************************');
           console.log('reference: ' + reference);
           console.log('hypothesis: ' + hypothesis);
-          console.log('****************************************');
           var partialWER = wer.wer(reference, hypothesis);
 
           totalWER = totalWER + partialWER;

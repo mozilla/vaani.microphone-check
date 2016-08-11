@@ -22,6 +22,7 @@
   "dependencies": {
     "async": "^2.0.1",
     "googleapis": "^12.0.0",
-    "limiter": "^1.1.0"
+    "limiter": "^1.1.0",
+    "parse-numbers": "^1.0.8"
   }
 }

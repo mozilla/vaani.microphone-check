@@ -7,6 +7,20 @@ const limiter = require('limiter');
 const googlesst = require('./lib/googlesst');
 const parse_numbers = require ('parse-numbers');
 
+var program = require('commander');
+
+program
+    .version('0.0.1')
+    .description('WER result calculation utility.')
+    .option('-c, --corpus <corpus>', 'The corpus to calculate the WER for (Corpora corespond to directories under results)');
+
+program.parse(process.argv);
+
+if (typeof program.corpus === 'undefined') {
+   console.error('No corpus specified!');
+   process.exit(1);
+}
+
 // Gets config
 const getConfig = () => {
     var config = JSON.parse(process.env.VAANI_CONFIG || fs.readFileSync("config.json"));
@@ -63,10 +77,12 @@ const normalizeText = (text) => {
 // Process wav files
 const processWAVFiles = (deviceDirectory) => {
   var totalWER = 0;
+  var filesProcessed = 0;
   var wavFilesProcessed = 0;
 
   fs.readdirSync(deviceDirectory).forEach( (wavFile, wavFileCount, array) => {
     rateLimiter.removeTokens(1, () => {
+      filesProcessed = filesProcessed + 1;
       if(wavFile.endsWith('.wav')) {
         var reference = getReference(wavFile);
         function getHypothesisCallback(hypothesis) {
@@ -81,7 +97,7 @@ const processWAVFiles = (deviceDirectory) => {
           totalWER = totalWER + partialWER;
           console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + deviceDirectory + ')');
 
-          if(wavFilesProcessed == array.length) {
+          if(filesProcessed == array.length) {
             persistWER(deviceDirectory, (totalWER / array.length));
           }
         }
@@ -105,8 +121,10 @@ const processDeviceCategories = (corpusDirectory, deviceCategory) => {
 
 // Process corpora
 const processCorpora = (corpus) => {
-  var corpusDirectory = path.join(resultsDirectory, corpus);
-  fs.readdirSync(corpusDirectory).forEach(processDeviceCategories.bind(undefined, corpusDirectory));
+  if (corpus === program.corpus) {
+    var corpusDirectory = path.join(resultsDirectory, corpus);
+    fs.readdirSync(corpusDirectory).forEach(processDeviceCategories.bind(undefined, corpusDirectory));
+  }
 }
 
 // Process results

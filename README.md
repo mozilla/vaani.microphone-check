@@ -96,9 +96,9 @@ WER: 0.1553679653679652
 
 To determine the WER for the various microphone/distance pairings of the result set, the repository contains a script `calculate-wer` that when executed as follows
 ```
-kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./calculate-wer
+kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./calculate-wer --corpus corpus-1
 ```
-passes the result set speech corpora through a STT engine and measures the WER of the resulting transcripts.
+passes the result set speech `corpus-1` through a STT engine and measures the WER of the resulting transcripts.
 
 The WER results are then written to files of the form
 ```
@@ -106,12 +106,8 @@ results/<corpus-1>/no/device-1/RESULTS
 results/<corpus-1>/no/device-2/RESULTS
 results/<corpus-1>/no/device-3/RESULTS
 ...
-results/<corpus-n>/rpi/device-1/RESULTS
-results/<corpus-n>/rpi/device-2/RESULTS
-results/<corpus-n>/rpi/device-3/RESULTS
-...
 ```
-corresponding to the various microphone/distance/corpus pairings. Each such file contains a single line of the form
+corresponding to the various microphone/distance pairings for `corpus-1`. Each such file contains a single line of the form
 ```
 WER: 0.2053679653679652
 ```

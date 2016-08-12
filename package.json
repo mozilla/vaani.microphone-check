@@ -21,6 +21,7 @@
   "homepage": "https://github.com/mozilla/vaani.microphone-check#readme",
   "dependencies": {
     "async": "^2.0.1",
+    "commander": "^2.9.0",
     "googleapis": "^12.0.0",
     "limiter": "^1.1.0",
     "parse-numbers": "^1.0.8"

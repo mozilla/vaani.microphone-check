@@ -64,10 +64,13 @@ const normalizeText = (text) => {
 const processWAVFiles = (resourceCorpusDirectory) => {
   var totalWER = 0;
   var wavFilesProcessed = 0;
+  var otherFilesProcessed = 0;
 
   fs.readdirSync(resourceCorpusDirectory).forEach( (wavFile, wavFileCount, array) => {
-    rateLimiter.removeTokens(1, () => {
-      if(wavFile.endsWith('.wav')) {
+    if (!wavFile.endsWith('.wav')) {
+        otherFilesProcessed = otherFilesProcessed + 1;
+    } else {
+      rateLimiter.removeTokens(1, () => {
         var reference = getReference(wavFile);
         function getHypothesisCallback(hypothesis) {
           wavFilesProcessed = wavFilesProcessed + 1;
@@ -81,13 +84,13 @@ const processWAVFiles = (resourceCorpusDirectory) => {
           totalWER = totalWER + partialWER;
           console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + resourceCorpusDirectory + ')');
 
-          if(wavFilesProcessed == array.length) {
-            persistWER(resourceCorpusDirectory, (totalWER / array.length));
+          if((wavFilesProcessed + otherFilesProcessed) == array.length) {
+            persistWER(resourceCorpusDirectory, (totalWER / wavFilesProcessed));
           }
         }
         getHypothesis(resourceCorpusDirectory, wavFile, getHypothesisCallback);
-      }
-    });
+      });
+    }
   });
 }
 

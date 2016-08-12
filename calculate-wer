@@ -77,12 +77,10 @@ const normalizeText = (text) => {
 // Process wav files
 const processWAVFiles = (deviceDirectory) => {
   var totalWER = 0;
-  var filesProcessed = 0;
   var wavFilesProcessed = 0;
 
   fs.readdirSync(deviceDirectory).forEach( (wavFile, wavFileCount, array) => {
     rateLimiter.removeTokens(1, () => {
-      filesProcessed = filesProcessed + 1;
       if(wavFile.endsWith('.wav')) {
         var reference = getReference(wavFile);
         function getHypothesisCallback(hypothesis) {
@@ -97,8 +95,8 @@ const processWAVFiles = (deviceDirectory) => {
           totalWER = totalWER + partialWER;
           console.log('Running WER: ' + (totalWER / wavFilesProcessed) + ' (' + deviceDirectory + ')');
 
-          if(filesProcessed == array.length) {
-            persistWER(deviceDirectory, (totalWER / array.length));
+          if((wavFileCount + 1) == array.length) {
+            persistWER(deviceDirectory, (totalWER / wavFilesProcessed));
           }
         }
         getHypothesis(deviceDirectory, wavFile, getHypothesisCallback);

@@ -7,6 +7,21 @@ const limiter = require('limiter');
 const googlesst = require('./lib/googlesst');
 const parse_numbers = require ('parse-numbers');
 
+var program = require('commander');
+
+program
+    .version('0.0.1')
+    .description('WER baseline calculation utility.')
+    .option('-c, --corpus <corpus>', 'The corpus to calculate the WER for (Corpora corespond to directories under resources/audio)');
+
+program.parse(process.argv);
+
+if (typeof program.corpus === 'undefined') {
+   console.error('No corpus specified!');
+   process.exit(1);
+}
+
+
 // Gets config
 const getConfig = () => {
     var config = JSON.parse(process.env.VAANI_CONFIG || fs.readFileSync("config.json"));
@@ -96,8 +111,10 @@ const processWAVFiles = (resourceCorpusDirectory) => {
 
 // Process corpora
 const processCorpora = (resourceCategoryDirectory, resourceCorpus) => {
-  var resourceCorpusDirectory = path.join(resourceCategoryDirectory, resourceCorpus);
-  processWAVFiles(resourceCorpusDirectory);
+  if (resourceCorpus === program.corpus) {
+    var resourceCorpusDirectory = path.join(resourceCategoryDirectory, resourceCorpus);
+    processWAVFiles(resourceCorpusDirectory);
+  }
 }
 
 // Process resource categories

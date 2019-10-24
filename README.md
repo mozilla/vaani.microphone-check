@@ -32,7 +32,7 @@ kdaviss-MacBook-Pro:vaani.microphone-check kdavis$ ./microphone-check <n> <corpu
 ```
 where `<n>` is replaced with the number of Nascent Object devices and `<corpus>`with the corpus one wishes to test. (The various corpora are identified by their directory name under the `resources/audio/` directory.
 
-Upon completetion, the recordings from the various devices will be placed in the `results` directory. For the `n=3` case the results will appear as follows
+Upon completion, the recordings from the various devices will be placed in the `results` directory. For the `n=3` case the results will appear as follows
 ```
 results
 ├── <corpus>
